@@ -1,65 +1,45 @@
-pipeline {
-   agent any
-   environment {
-       registry = "interbeing/k8scicd"
-       GOCACHE = "/tmp"
-   }
-   stages {
-       stage('Build') {
-           agent {
-               docker {
-                   image 'golang'
-               }
-           }
-           steps {
-               // Create our project directory.
-               sh 'cd ${GOPATH}/src'
-               sh 'mkdir -p ${GOPATH}/src/hello-world'
-               // Copy all files in our Jenkins workspace to our project directory.               
-               sh 'cp -r ${WORKSPACE}/* ${GOPATH}/src/hello-world'
-               // Build the app.
-               sh 'go build'              
-           }    
-       }
-       stage('Test') {
-           agent {
-               docker {
-                   image 'golang'
-               }
-           }
-           steps {                
-               // Create our project directory.
-               sh 'cd ${GOPATH}/src'
-               sh 'mkdir -p ${GOPATH}/src/hello-world'
-               // Copy all files in our Jenkins workspace to our project directory.               
-               sh 'cp -r ${WORKSPACE}/* ${GOPATH}/src/hello-world'
-               // Remove cached test results.
-               sh 'go clean -cache'
-               // Run Unit Tests.
-               sh 'go test ./... -v -short'           
-           }
-       }
-       stage('Publish') {
-           environment {
-               registryCredential = 'dockerhub'
-           }
-           steps{
-               script {
-                   def appimage = docker.build registry + ":$BUILD_NUMBER"
-                   docker.withRegistry( '', registryCredential ) {
-                       appimage.push()
-                       appimage.push('latest')
-                   }
-               }
-           }
-       }
-       stage ('Deploy') {
-           steps {
-               script{
-                   def image_id = registry + ":$BUILD_NUMBER"
-                   sh "ansible-playbook  playbook.yml --extra-vars \"image_id=${image_id}\""
-               }
-           }
-       }
-   }
+def label = 'ci-runner'
+def npmToken = <PROJECT_NPM_TOKEN>
+
+podTemplate(
+    label: label,
+    containers: [
+        containerTemplate(
+            name: 'jnlp',
+            image: <YOUR_IMAGE>,
+            workingDir: '/home/jenkins',
+            resourceRequestCpu: '500m',
+            resourceLimitCpu: '4000m',
+            resourceRequestMemory: '4Gi',
+            resourceLimitMemory: '8Gi',
+            envVars: [
+                envVar(key: 'NPM_TOKEN', value: npmToken)
+            ]
+        )
+    ],
+    volumes: [
+        hostPathVolume(hostPath: '/usr/bin/docker', mountPath: '/usr/bin/docker'),
+        hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')
+    ]
+) {
+    node(label) {
+
+        def myRepo = checkout scm
+
+        sh('git config user.name <YOUR_USERNAME>)
+        sh('git config user.email <YOUR_EMAIL>)
+
+        stage('merge with develop) {
+            sh('git merge origin/master --no-commit')
+        }
+
+        stage('install') {
+            sh('yarn install --non-interactive --pure-lockfile')
+        }
+
+         stage('test') {
+            sh('yarn test')
+            sh('yarn build')
+        }
+    }
 }
