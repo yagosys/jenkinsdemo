@@ -1,10 +1,20 @@
-FROM golang:1.8-alpine AS build-env
-RUN mkdir /go/src/app && apk update && apk add git 
-ADD main.go /go/src/app/
-WORKDIR /go/src/app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o app .
+FROM jenkinsci/slave
 
-FROM scratch
-WORKDIR /app
-COPY --from=build-env /go/src/app/app .
-ENTRYPOINT [ "./app" ]
+ENV NODE_VERSION 12.6.0
+ENV NODE_ARCH x64
+
+USER root
+
+RUN echo "Installing dependencies" && \
+    apt-get -y update && \
+    apt-get -y install jq lxc libltdl7 && \
+    apt-get clean
+
+RUN echo "Installing Node.JS" && \
+    curl-LO https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$NODE_ARCH.tar.xz && \
+    tar -xJf node-v$NODE_VERSION-linux-$NODE_ARCH.tar.xz -C /usr/local --strip-components=1 && \
+    ln -s /usr/local/bin/node /usr/local/bin/nodejs && \
+    rm node-v$NODE_VERSION-linux-$NODE_ARCH.tar.xz
+RUN echo "Installing Yarn" && \
+    npm install -g yarn
+
