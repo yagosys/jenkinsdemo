@@ -1,21 +1,17 @@
-FROM golang:1.8-alpine AS build-env
-RUN mkdir /go/src/app && apk update && apk add git 
-ENV GLIBC_REPO=https://github.com/sgerrand/alpine-pkg-glibc
-ENV GLIBC_VERSION=2.24-r0
+FROM ubuntu:18.04
 
-RUN set -ex && \
-    apk --update add libstdc++ curl ca-certificates && \
-    for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION}; \
-        do curl -sSL ${GLIBC_REPO}/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
-    apk add --allow-untrusted /tmp/*.apk && \
-    rm -v /tmp/*.apk && \
-    /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib
+RUN apt-get update && \
+  apt-get -y install apache2
 
-ADD main.go /go/src/app/
-WORKDIR /go/src/app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o app .
+RUN echo 'Hello world' > /var/www/html/index.html
 
-FROM scratch
-WORKDIR /app
-COPY --from=build-env /go/src/app/app .
-ENTRYPOINT [ "./app" ]
+RUN echo '. /etc/apache2/envvars' > /root/run_apache.sh && \
+    echo 'mkdir -p /var/run/apache2' >> /root/run_apache.sh && \
+    echo 'mkdir -p /var/lock/apache2' >> /root/run_apache.sh && \
+    chmod 755 /root/run_apache.sh
+
+
+EXPOSE 80
+
+CMD /root/run_apache.sh
+
