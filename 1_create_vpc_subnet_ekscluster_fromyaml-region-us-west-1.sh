@@ -1,4 +1,5 @@
 clustername="eks-cluster-3"
+
 regionname="us-west-1"
 vpccidr="10.3.0.0/16"
 sub="10-3"
