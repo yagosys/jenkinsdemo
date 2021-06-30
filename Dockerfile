@@ -1,7 +1,10 @@
 FROM ubuntu:18.04
 
 RUN apt-get update && \
-  apt-get -y install apache2
+  apt-get -y install apache2 \
+  apt-get -y install python3-sklearn \
+  apt-get -y install python3-sklearn \
+  apt-get -y install python3-sklearn-doc
 
 RUN echo 'Hello  world' > /var/www/html/index.html
 
