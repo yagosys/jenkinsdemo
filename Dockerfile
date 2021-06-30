@@ -4,8 +4,6 @@ RUN apt-get update && \
   apt-get -y install apache2 
 RUN apt-get update && \
   apt-get -y install python3-sklearn 
-RUN apt-get update && \
-  apt-get -y install python3-sklearn-pandas
 
 RUN echo 'Hello  world' > /var/www/html/index.html
 
