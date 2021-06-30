@@ -1,10 +1,11 @@
 FROM ubuntu:18.04
 
 RUN apt-get update && \
-  apt-get -y install apache2 \
-  apt-get -y install python3-sklearn \
-  apt-get -y install python3-sklearn \
-  apt-get -y install python3-sklearn-doc
+  apt-get -y install apache2 
+RUN apt-get update && \
+  apt-get -y install python3-sklearn 
+RUN apt-get update && \
+  apt-get -y install python3-sklearn-pandas
 
 RUN echo 'Hello  world' > /var/www/html/index.html
 
