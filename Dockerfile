@@ -3,6 +3,8 @@ FROM ubuntu:18.04
 RUN apt-get update && \
   apt-get -y install apache2 
 RUN apt-get update && \
+  apt-get install -y tzdata
+RUN apt-get update && \
   apt-get -y install python3-sklearn 
 
 RUN echo 'Hello  world' > /var/www/html/index.html
